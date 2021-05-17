@@ -169,6 +169,8 @@
 
     private string apiRequestStatusCode;
 
+    private const string API_RESOURE_PATH = "api/employee/";
+
     // ElementReference firstNameTextBox;
 
     protected override async Task OnInitializedAsync()
@@ -176,7 +178,7 @@
         employee = new Employee();
         // employeeArray = await Http.GetFromJsonAsync<Employee[]>("api/employee");
 
-        employeeArray = await employeeService.GetAllEmployeeAsync("api/employee");
+        employeeArray = await employeeService.GetAllEmployeeAsync(API_RESOURE_PATH);
 
         // await base.OnInitializedAsync();
     }
@@ -185,7 +187,7 @@
     {
         await Task.Delay(500);
 
-        employeeArray = await employeeService.GetAllEmployeeAsync("api/employee");
+        employeeArray = await employeeService.GetAllEmployeeAsync(API_RESOURE_PATH);
 
         StateHasChanged();
     }
@@ -197,23 +199,23 @@
         if (formIsValid == false)
             return;
 
-        isUpdateCall = false;
+
 
         if (employee.Id == 0)
         {
+            isUpdateCall = false;
             Console.WriteLine("********* Inside create employee ");
-            bool isSuccessful = await employeeService.SaveEmployeeAsync("api/employee", employee);
-            Console.WriteLine("Response : ", isSuccessful);
-
+            bool isSuccessful = await employeeService.SaveEmployeeAsync(API_RESOURE_PATH, employee);
+            Console.WriteLine("Create Response : ", isSuccessful);
             setStatus(isSuccessful);
-
             // await Http.PostAsJsonAsync<Employee>("api/employee", employee);
         }
         else
         {
             Console.WriteLine("********* Inside update employee", employee);
-            bool isSuccessful = await employeeService.UpdateEmployeeAsync("api/employee", employee.Id, employee);
-
+            isUpdateCall = true;
+            bool isSuccessful = await employeeService.UpdateEmployeeAsync(API_RESOURE_PATH, employee.Id, employee);
+            Console.WriteLine("Update Response : ", isSuccessful);
             setStatus(isSuccessful);
         }
 
@@ -253,7 +255,7 @@
         if (existingEmployee.Id != 0)
         {
             Console.WriteLine("********* Delete Employee ******* ", existingEmployee.Id);
-            bool isSuccessful = await employeeService.DeleteEmployeeAsync("api/employee/", existingEmployee.Id);
+            bool isSuccessful = await employeeService.DeleteEmployeeAsync(API_RESOURE_PATH, existingEmployee.Id);
 
             setStatus(isSuccessful);
         }

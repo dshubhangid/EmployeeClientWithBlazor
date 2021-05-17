@@ -58,6 +58,7 @@ namespace EmployeeClientWithBlazor.Data
 
         public Employee(Employee employee)
         {
+            this.Id = employee.Id;
             this.firstName = employee.firstName;
             this.lastName = employee.lastName;
             this.organization = employee.organization;
