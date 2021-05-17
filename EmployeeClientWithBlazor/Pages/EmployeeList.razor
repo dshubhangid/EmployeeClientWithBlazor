@@ -1,0 +1,276 @@
+@page "/employeeList"
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@using EmployeeClientWithBlazor.Data
+@using EmployeeClientWithBlazor.Services
+
+@inject IEmployeeService<Employee> employeeService
+
+@if (apiRequestStatusCode == "SUCCESSFUL")
+{
+    <div class="col-12 alert alert-success" role="alert">
+        Data save successfully.
+    </div>
+}
+
+@if (apiRequestStatusCode == "ERROR")
+{
+    <div class="col-12 alert alert-danger" role="alert">
+        Error occurred while saving data.
+    </div>
+}
+
+<div class="col-12">
+    <h3><b>Enter Employee Information</b></h3>
+    <hr />
+
+    <EditForm Model="@employee" Context="formContext">
+
+        <DataAnnotationsValidator />
+
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">first name :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.firstName" placeholder="first name" />
+            &nbsp; <ValidationMessage For="@(() => employee.firstName)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">last name :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.lastName" placeholder="last name" />
+            &nbsp; <ValidationMessage For="@(() => employee.lastName)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">Organization :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.organization" placeholder="organization" />
+            &nbsp; <ValidationMessage For="@(() => employee.organization)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">Position :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.position" placeholder="position" />
+            &nbsp; <ValidationMessage For="@(() => employee.position)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">Address :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.address" placeholder="address" />
+            &nbsp; <ValidationMessage For="@(() => employee.address)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">City :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.city" placeholder="city" />
+            &nbsp; <ValidationMessage For="@(() => employee.city)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">Gender :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.gender" placeholder="gender" />
+            &nbsp; <ValidationMessage For="@(() => employee.gender)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">Salary :</label>
+            <InputNumber class="form-control col-3" @bind-Value="employee.salary" placeholder="salary" />
+            &nbsp; <ValidationMessage For="@(() => employee.salary)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <label class="col-2 font-weight-bold">Department :</label>
+            <InputText class="form-control col-3" @bind-Value="employee.department" placeholder="department" />
+            &nbsp; <ValidationMessage For="@(() => employee.department)" />
+        </div>
+        <br />
+        <div class="col-12 row">
+            <span class="col-2"></span>
+            @if (@isUpdateCall)
+            {
+                <input type="submit" @onclick="@(() => SaveEmployee(formContext))" disabled="@(!formContext.Validate())" class="form-control col-1 btn btn-primary" value="Update" />
+            }
+            else
+            {
+                <input type="submit" @onclick="@(() => SaveEmployee(formContext))" disabled="@(!formContext.Validate())" class="form-control col-1 btn btn-primary" value="Save" />
+            }
+
+            <span>&nbsp;</span>
+            <input type="submit" @onclick="@(() => ClearEmployee(formContext))" class="form-control col-1 btn btn-primary" value="Clear" />
+        </div>
+    </EditForm>
+</div>
+<br />
+<div class="col-12">
+    <h1>Employee List Information</h1>
+
+    <p>This component get all employees from Asp.net web api server.</p>
+
+    @if (employeeArray == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">FirstName</th>
+                    <th scope="col">LastName</th>
+                    <th scope="col">Organization</th>
+                    <th scope="col">Position</th>
+                    <th scope="col">Address</th>
+                    <th scope="col">City</th>
+                    <th scope="col">Gender</th>
+                    <th scope="col">Salary</th>
+                    <th scope="col">Department</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var employee in employeeArray)
+                {
+                    <tr>
+                        <td>@employee.Id</td>
+                        <td>@employee.firstName</td>
+                        <td>@employee.lastName</td>
+                        <td>@employee.organization</td>
+                        <td>@employee.position</td>
+                        <td>@employee.address</td>
+                        <td>@employee.city</td>
+                        <td>@employee.gender</td>
+                        <td>@employee.salary</td>
+                        <td>@employee.department</td>
+                        <td>
+                            <button @onclick="() => UpdateEmployee(employee)" style="background: none; border: none; padding: 0; outline: none;" type="button">
+                                <span class="fas fa-user-edit fa-lg" style="color: blue;" />
+                            </button>
+                            &nbsp;&nbsp;
+                            <button @onclick="() => DeleteEmployee(employee)" style="background: none; border: none; padding: 0; outline: none;" type="button">
+                                <span class="fas fa-trash fa-lg" style="color: red;"></span>
+                            </button>
+
+                        </td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+
+    private Employee[] employeeArray;
+
+    private bool isUpdateCall;
+
+    private Employee employee;
+
+    private string apiRequestStatusCode;
+
+    // ElementReference firstNameTextBox;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = new Employee();
+        // employeeArray = await Http.GetFromJsonAsync<Employee[]>("api/employee");
+
+        employeeArray = await employeeService.GetAllEmployeeAsync("api/employee");
+
+        // await base.OnInitializedAsync();
+    }
+
+    private async Task RefreshEmployeeList()
+    {
+        await Task.Delay(500);
+
+        employeeArray = await employeeService.GetAllEmployeeAsync("api/employee");
+
+        StateHasChanged();
+    }
+
+
+    private async Task SaveEmployee(EditContext formContext)
+    {
+        bool formIsValid = formContext.Validate();
+        if (formIsValid == false)
+            return;
+
+        isUpdateCall = false;
+
+        if (employee.Id == 0)
+        {
+            Console.WriteLine("********* Inside create employee ");
+            bool isSuccessful = await employeeService.SaveEmployeeAsync("api/employee", employee);
+            Console.WriteLine("Response : ", isSuccessful);
+
+            setStatus(isSuccessful);
+
+            // await Http.PostAsJsonAsync<Employee>("api/employee", employee);
+        }
+        else
+        {
+            Console.WriteLine("********* Inside update employee", employee);
+            bool isSuccessful = await employeeService.UpdateEmployeeAsync("api/employee", employee.Id, employee);
+
+            setStatus(isSuccessful);
+        }
+
+        // Refresh list
+        await RefreshEmployeeList();
+    }
+
+    private void ClearEmployee(EditContext formContext)
+    {
+        bool formIsValid = formContext.Validate();
+        if (formIsValid == false)
+            return;
+
+        isUpdateCall = false;
+        apiRequestStatusCode = "";
+        employee = new Employee();
+    }
+
+    private void UpdateEmployee(Employee existingEmployee)
+    {
+        isUpdateCall = true;
+        apiRequestStatusCode = "";
+
+        if (existingEmployee != null)
+        {
+            employee = new Employee(existingEmployee);
+        }
+
+    }
+
+    private async Task DeleteEmployee(Employee existingEmployee)
+    {
+        apiRequestStatusCode = "";
+        isUpdateCall = false;
+        employee = new Employee();
+
+        if (existingEmployee.Id != 0)
+        {
+            Console.WriteLine("********* Delete Employee ******* ", existingEmployee.Id);
+            bool isSuccessful = await employeeService.DeleteEmployeeAsync("api/employee/", existingEmployee.Id);
+
+            setStatus(isSuccessful);
+        }
+
+        // Refresh list
+        await RefreshEmployeeList();
+    }
+
+    private void setStatus(bool isSuccessful)
+    {
+        if (isSuccessful)
+        {
+            apiRequestStatusCode = "SUCCESSFUL";
+        }
+        else
+        {
+            apiRequestStatusCode = "ERROR";
+        }
+    }
+}
