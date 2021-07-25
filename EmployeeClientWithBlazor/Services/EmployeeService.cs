@@ -21,7 +21,6 @@ namespace EmployeeClientWithBlazor.Services
 
         async Task<T[]> IEmployeeService<T>.GetAllEmployeeAsync(string requestUri)
         {
-            Console.WriteLine("********* I am in get all employee service: This is Test Branch : 333333");
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
